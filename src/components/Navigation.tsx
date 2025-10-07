@@ -1,31 +1,19 @@
-import { useState, useEffect } from "react";
-import { Button } from "./ui/button";
+import React, { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
+import logo from "@/assets/Jubilee-logo1.png"; // ✅ Make sure your file path & name are correct
 
-interface NavigationProps {
-  onBookNow: () => void;
-}
-
-const Navigation = ({ onBookNow }: NavigationProps) => {
+const Navbar = ({ onBookNow, scrollToSection }: any) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
+      setIsScrolled(window.scrollY > 20);
     };
-
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-      setIsMobileMenuOpen(false);
-    }
-  };
 
   return (
     <nav
@@ -37,15 +25,19 @@ const Navigation = ({ onBookNow }: NavigationProps) => {
     >
       <div className="max-w-7xl mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          {/* Logo */}
-          <div className="flex items-center gap-2">
-            <span className="text-3xl">🎉</span>
+          {/* ✅ Logo Section */}
+          <div className="flex items-center gap-2 flex-shrink-0 pl-4">
+            <img
+              src={logo}
+              alt="Jubilee Events Logo"
+              className="w-[150px] h-[110px] object-contain" // adjust freely
+            />
             <span className="font-heading font-bold text-2xl gradient-text">
               Jubilee Events
             </span>
           </div>
 
-          {/* Desktop Menu */}
+          {/* ✅ Desktop Menu */}
           <div className="hidden md:flex items-center gap-8">
             <button
               onClick={() => scrollToSection("about")}
@@ -80,7 +72,7 @@ const Navigation = ({ onBookNow }: NavigationProps) => {
             </Button>
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* ✅ Mobile Menu Button */}
           <button
             className="md:hidden text-foreground"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -89,7 +81,7 @@ const Navigation = ({ onBookNow }: NavigationProps) => {
           </button>
         </div>
 
-        {/* Mobile Menu */}
+        {/* ✅ Mobile Menu */}
         {isMobileMenuOpen && (
           <div className="md:hidden mt-4 pb-4 space-y-4 animate-fadeInUp">
             <button
@@ -129,4 +121,4 @@ const Navigation = ({ onBookNow }: NavigationProps) => {
   );
 };
 
-export default Navigation;
+export default Navbar;

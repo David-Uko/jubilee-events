@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Navigation from "@/components/Navigation";
 import Hero from "@/components/Hero";
 import About from "@/components/About";
@@ -13,6 +13,28 @@ const Index = () => {
   const [selectedPackage, setSelectedPackage] = useState("");
   const [packagePrice, setPackagePrice] = useState("");
 
+  // ✅ Refs for sections
+  const aboutRef = useRef<HTMLDivElement>(null);
+  const packagesRef = useRef<HTMLDivElement>(null);
+  const galleryRef = useRef<HTMLDivElement>(null);
+  const contactRef = useRef<HTMLDivElement>(null);
+
+  // ✅ Scroll smoothly to sections
+  const scrollToSection = (section: string) => {
+    const refs: Record<string, React.RefObject<HTMLDivElement>> = {
+      about: aboutRef,
+      packages: packagesRef,
+      gallery: galleryRef,
+      contact: contactRef,
+    };
+
+    refs[section]?.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
+
+  // ✅ Booking logic
   const handleSelectPackage = (packageName: string, price: string) => {
     setSelectedPackage(packageName);
     setPackagePrice(price);
@@ -26,21 +48,40 @@ const Index = () => {
   };
 
   const handleViewPackages = () => {
-    const packagesElement = document.getElementById("packages");
-    if (packagesElement) {
-      packagesElement.scrollIntoView({ behavior: "smooth" });
-    }
+    packagesRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
     <div className="relative min-h-screen">
       <FloatingElements />
-      <Navigation onBookNow={handleBookNow} />
+
+      {/* ✅ Navigation receives both scroll and booking handlers */}
+      <Navigation onBookNow={handleBookNow} scrollToSection={scrollToSection} />
+
+      {/* ✅ Hero Section */}
       <Hero onViewPackages={handleViewPackages} onBookNow={handleBookNow} />
-      <About />
-      <Packages onSelectPackage={handleSelectPackage} />
-      <Gallery />
-      <Contact />
+
+      {/* ✅ About Section */}
+      <div ref={aboutRef} id="about" className="scroll-mt-28">
+        <About />
+      </div>
+
+      {/* ✅ Packages Section */}
+      <div ref={packagesRef} id="packages" className="scroll-mt-28">
+        <Packages onSelectPackage={handleSelectPackage} />
+      </div>
+
+      {/* ✅ Gallery Section */}
+      <div ref={galleryRef} id="gallery" className="scroll-mt-28">
+        <Gallery />
+      </div>
+
+      {/* ✅ Contact Section */}
+      <div ref={contactRef} id="contact" className="scroll-mt-28">
+        <Contact />
+      </div>
+
+      {/* ✅ Booking Form Modal */}
       <BookingForm
         isOpen={isBookingOpen}
         onClose={() => setIsBookingOpen(false)}
