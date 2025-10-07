@@ -1,37 +1,39 @@
-import { Sparkles, Star, Heart, Wine, Music } from "lucide-react";
+import weddingImg from "@/assets/event-wedding.jpg";
+import birthdayImg from "@/assets/event-birthday.jpg";
+import proposalImg from "@/assets/event-proposal.jpg";
+import anniversaryImg from "@/assets/event-anniversary.jpg";
+import celebrationImg from "@/assets/event-celebration.jpg";
+import saxophoneImg from "@/assets/event-saxophone.jpg";
 
 const FloatingElements = () => {
   const elements = [
-    { Icon: Sparkles, position: "top-[10%] left-[5%]", animation: "float-slow", size: 24, color: "text-accent" },
-    { Icon: Star, position: "top-[20%] right-[10%]", animation: "float-element", size: 20, color: "text-celebration-pink" },
-    { Icon: Heart, position: "top-[40%] left-[15%]", animation: "float-fast", size: 18, color: "text-primary" },
-    { Icon: Wine, position: "top-[60%] right-[8%]", animation: "float-slow", size: 22, color: "text-secondary" },
-    { Icon: Music, position: "top-[75%] left-[10%]", animation: "float-element", size: 20, color: "text-celebration-blue" },
-    { Icon: Sparkles, position: "top-[85%] right-[15%]", animation: "float-fast", size: 24, color: "text-accent" },
-    { Icon: Star, position: "top-[30%] left-[85%]", animation: "float-slow", size: 18, color: "text-primary-glow" },
-    { Icon: Heart, position: "top-[50%] right-[90%]", animation: "float-element", size: 16, color: "text-celebration-pink" },
+    { img: weddingImg, position: "top-[10%] left-[5%]", animation: "float-slow", size: "w-20 h-20" },
+    { img: celebrationImg, position: "top-[20%] right-[10%]", animation: "float-element", size: "w-16 h-16" },
+    { img: birthdayImg, position: "top-[40%] left-[15%]", animation: "float-fast", size: "w-16 h-16" },
+    { img: anniversaryImg, position: "top-[60%] right-[8%]", animation: "float-slow", size: "w-20 h-20" },
+    { img: saxophoneImg, position: "top-[75%] left-[10%]", animation: "float-element", size: "w-16 h-16" },
+    { img: proposalImg, position: "top-[85%] right-[15%]", animation: "float-fast", size: "w-20 h-20" },
+    { img: weddingImg, position: "top-[30%] left-[85%]", animation: "float-slow", size: "w-14 h-14" },
+    { img: birthdayImg, position: "top-[50%] right-[90%]", animation: "float-element", size: "w-14 h-14" },
   ];
 
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
       {elements.map((element, index) => {
-        const { Icon, position, animation, size, color } = element;
+        const { img, position, animation, size } = element;
         return (
           <div
             key={index}
-            className={`absolute ${position} ${animation} opacity-30`}
+            className={`absolute ${position} ${animation} opacity-20`}
           >
-            <Icon size={size} className={color} />
+            <img 
+              src={img} 
+              alt="Event celebration" 
+              className={`${size} object-cover rounded-full shadow-lg`}
+            />
           </div>
         );
       })}
-      
-      {/* Emoji floating elements */}
-      <div className="absolute top-[15%] left-[20%] float-slow text-4xl opacity-40">🎈</div>
-      <div className="absolute top-[35%] right-[20%] float-element text-3xl opacity-40">🎭</div>
-      <div className="absolute top-[55%] left-[80%] float-fast text-3xl opacity-40">🎉</div>
-      <div className="absolute top-[70%] right-[25%] float-slow text-4xl opacity-40">🥂</div>
-      <div className="absolute top-[90%] left-[30%] float-element text-3xl opacity-40">✨</div>
     </div>
   );
 };

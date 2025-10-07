@@ -1,6 +1,5 @@
 import { Button } from "./ui/button";
 import heroImage from "@/assets/hero-celebration.jpg";
-import { Sparkles } from "lucide-react";
 
 interface HeroProps {
   onViewPackages: () => void;
@@ -20,11 +19,6 @@ const Hero = ({ onViewPackages, onBookNow }: HeroProps) => {
 
       {/* Content */}
       <div className="relative z-10 text-center px-4 max-w-5xl mx-auto animate-fadeInUp">
-        <div className="inline-flex items-center gap-2 mb-6 px-6 py-2 rounded-full bg-card/50 backdrop-blur-sm border border-primary/30">
-          <Sparkles className="text-accent" size={20} />
-          <span className="text-sm font-medium text-foreground">Premier Surprise Event Company</span>
-        </div>
-        
         <h1 className="font-heading font-extrabold text-5xl md:text-7xl lg:text-8xl mb-6 leading-tight">
           <span className="gradient-text">Crafting Moments,</span>
           <br />

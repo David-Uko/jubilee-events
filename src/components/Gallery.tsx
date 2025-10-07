@@ -1,12 +1,18 @@
 import { useState } from "react";
+import weddingImg from "@/assets/event-wedding.jpg";
+import birthdayImg from "@/assets/event-birthday.jpg";
+import proposalImg from "@/assets/event-proposal.jpg";
+import anniversaryImg from "@/assets/event-anniversary.jpg";
+import celebrationImg from "@/assets/event-celebration.jpg";
+import saxophoneImg from "@/assets/event-saxophone.jpg";
 
 const galleryImages = [
-  { id: 1, emoji: "🎂", label: "Birthday Celebrations" },
-  { id: 2, emoji: "💍", label: "Wedding Surprises" },
-  { id: 3, emoji: "🎊", label: "Anniversary Events" },
-  { id: 4, emoji: "🎸", label: "Live Entertainment" },
-  { id: 5, emoji: "📸", label: "Professional Photography" },
-  { id: 6, emoji: "🎭", label: "Themed Decorations" },
+  { id: 1, img: birthdayImg, label: "Birthday Celebrations" },
+  { id: 2, img: weddingImg, label: "Wedding Surprises" },
+  { id: 3, img: anniversaryImg, label: "Anniversary Events" },
+  { id: 4, img: proposalImg, label: "Proposal Moments" },
+  { id: 5, img: celebrationImg, label: "Special Celebrations" },
+  { id: 6, img: saxophoneImg, label: "Live Entertainment" },
 ];
 
 const Gallery = () => {
@@ -28,13 +34,15 @@ const Gallery = () => {
           {galleryImages.map((item) => (
             <div
               key={item.id}
-              className="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-card to-muted/50 border border-primary/20 cursor-pointer transition-all duration-300 hover:scale-105 hover:border-primary/50"
+              className="relative aspect-square rounded-2xl overflow-hidden border border-primary/20 cursor-pointer transition-all duration-300 hover:scale-105 hover:border-primary/50 shadow-lg hover:shadow-2xl"
               onMouseEnter={() => setHoveredId(item.id)}
               onMouseLeave={() => setHoveredId(null)}
             >
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-8xl">{item.emoji}</span>
-              </div>
+              <img 
+                src={item.img} 
+                alt={item.label}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
               <div
                 className={`absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent flex items-end p-6 transition-opacity duration-300 ${
                   hoveredId === item.id ? 'opacity-100' : 'opacity-0'
