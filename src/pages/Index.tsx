@@ -1,12 +1,52 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from "react";
+import Navigation from "@/components/Navigation";
+import Hero from "@/components/Hero";
+import About from "@/components/About";
+import Packages from "@/components/Packages";
+import Gallery from "@/components/Gallery";
+import Contact from "@/components/Contact";
+import BookingForm from "@/components/BookingForm";
+import FloatingElements from "@/components/FloatingElements";
 
 const Index = () => {
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const [selectedPackage, setSelectedPackage] = useState("");
+  const [packagePrice, setPackagePrice] = useState("");
+
+  const handleSelectPackage = (packageName: string, price: string) => {
+    setSelectedPackage(packageName);
+    setPackagePrice(price);
+    setIsBookingOpen(true);
+  };
+
+  const handleBookNow = () => {
+    setSelectedPackage("Custom Package");
+    setPackagePrice("Contact for pricing");
+    setIsBookingOpen(true);
+  };
+
+  const handleViewPackages = () => {
+    const packagesElement = document.getElementById("packages");
+    if (packagesElement) {
+      packagesElement.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="relative min-h-screen">
+      <FloatingElements />
+      <Navigation onBookNow={handleBookNow} />
+      <Hero onViewPackages={handleViewPackages} onBookNow={handleBookNow} />
+      <About />
+      <Packages onSelectPackage={handleSelectPackage} />
+      <Gallery />
+      <Contact />
+      <BookingForm
+        isOpen={isBookingOpen}
+        onClose={() => setIsBookingOpen(false)}
+        selectedPackage={selectedPackage}
+        packagePrice={packagePrice}
+      />
     </div>
   );
 };
