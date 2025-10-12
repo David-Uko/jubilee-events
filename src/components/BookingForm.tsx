@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import emailjs from "@emailjs/browser";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -12,6 +13,7 @@ import { Checkbox } from "./ui/checkbox";
 import { toast } from "sonner";
 import { Loader2, Sparkles } from "lucide-react";
 
+// ✅ Booking form validation schema
 const bookingSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
@@ -48,41 +50,52 @@ const BookingForm = ({ isOpen, onClose, selectedPackage, packagePrice }: Booking
     resolver: zodResolver(bookingSchema),
   });
 
+  // ✅ Handle form submission using EmailJS
   const onSubmit = async (data: BookingFormData) => {
     setIsSubmitting(true);
-    
+
     try {
-      // Here we'll send the booking email
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-booking-email`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...data,
-          package: selectedPackage,
-          price: packagePrice,
-        }),
-      });
+      const serviceID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+      const templateID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+      const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 
-      if (!response.ok) throw new Error('Failed to send booking');
+      const templateParams = {
+        fullName: data.fullName,
+        email: data.email,
+        phone: data.phone,
+        eventType: data.eventType,
+        date: data.date,
+        time: data.time,
+        location: data.location,
+        notes: data.notes || "None",
+        package: selectedPackage,
+        price: packagePrice,
+        saxophonist: data.saxophonist ? "Yes" : "No",
+        photoGift: data.photoGift ? "Yes" : "No",
+      };
 
+      const response = await emailjs.send(serviceID, templateID, templateParams, publicKey);
+
+      if (response.status !== 200) throw new Error("EmailJS error");
+
+      // ✅ Success handling
       setShowSuccess(true);
       reset();
-      
+
       setTimeout(() => {
         setShowSuccess(false);
         onClose();
       }, 5000);
 
     } catch (error) {
-      console.error('Booking error:', error);
+      console.error("Booking error:", error);
       toast.error("Failed to submit booking. Please try again or contact us directly.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  // ✅ Success Dialog
   if (showSuccess) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
@@ -108,6 +121,7 @@ const BookingForm = ({ isOpen, onClose, selectedPackage, packagePrice }: Booking
     );
   }
 
+  // ✅ Main Booking Form UI
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-card border-primary/50">
@@ -180,7 +194,7 @@ const BookingForm = ({ isOpen, onClose, selectedPackage, packagePrice }: Booking
                 id="date"
                 type="date"
                 {...register("date")}
-                min={new Date().toISOString().split('T')[0]}
+                min={new Date().toISOString().split("T")[0]}
                 className="bg-input/50 border-border focus:border-primary transition-colors"
               />
               {errors.date && <p className="text-destructive text-sm mt-1">{errors.date.message}</p>}
@@ -224,20 +238,14 @@ const BookingForm = ({ isOpen, onClose, selectedPackage, packagePrice }: Booking
               <Label>Add-ons</Label>
               {selectedPackage === "Platinum Prestige" && (
                 <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="photoGift"
-                    onCheckedChange={(checked) => setValue("photoGift", checked as boolean)}
-                  />
+                  <Checkbox id="photoGift" onCheckedChange={(checked) => setValue("photoGift", checked as boolean)} />
                   <label htmlFor="photoGift" className="text-sm font-body cursor-pointer">
                     Customized Photo Gift (Included)
                   </label>
                 </div>
               )}
               <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="saxophonist"
-                  onCheckedChange={(checked) => setValue("saxophonist", checked as boolean)}
-                />
+                <Checkbox id="saxophonist" onCheckedChange={(checked) => setValue("saxophonist", checked as boolean)} />
                 <label htmlFor="saxophonist" className="text-sm font-body cursor-pointer">
                   Saxophonist Performance (Included)
                 </label>
