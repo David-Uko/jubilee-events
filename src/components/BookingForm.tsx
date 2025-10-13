@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import emailjs from "@emailjs/browser";
+import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -50,33 +50,30 @@ const BookingForm = ({ isOpen, onClose, selectedPackage, packagePrice }: Booking
     resolver: zodResolver(bookingSchema),
   });
 
-  // ✅ Handle form submission using EmailJS
+  // ✅ Handle form submission using Supabase edge function
   const onSubmit = async (data: BookingFormData) => {
     setIsSubmitting(true);
 
     try {
-      const serviceID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
-      const templateID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
-      const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+      // Call the send-booking-email edge function
+      const { error } = await supabase.functions.invoke('send-booking-email', {
+        body: {
+          fullName: data.fullName,
+          email: data.email,
+          phone: data.phone,
+          eventType: data.eventType,
+          date: data.date,
+          time: data.time,
+          location: data.location,
+          notes: data.notes || "",
+          saxophonist: data.saxophonist || false,
+          photoGift: data.photoGift || false,
+          package: selectedPackage,
+          price: packagePrice,
+        },
+      });
 
-      const templateParams = {
-        fullName: data.fullName,
-        email: data.email,
-        phone: data.phone,
-        eventType: data.eventType,
-        date: data.date,
-        time: data.time,
-        location: data.location,
-        notes: data.notes || "None",
-        package: selectedPackage,
-        price: packagePrice,
-        saxophonist: data.saxophonist ? "Yes" : "No",
-        photoGift: data.photoGift ? "Yes" : "No",
-      };
-
-      const response = await emailjs.send(serviceID, templateID, templateParams, publicKey);
-
-      if (response.status !== 200) throw new Error("EmailJS error");
+      if (error) throw error;
 
       // ✅ Success handling
       setShowSuccess(true);
