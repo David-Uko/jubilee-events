@@ -1,19 +1,31 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { supabase } from "@/integrations/supabase/client";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "./ui/dialog";
+import emailjs from "@emailjs/browser";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "./ui/dialog";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Label } from "./ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 import { Checkbox } from "./ui/checkbox";
 import { toast } from "sonner";
 import { Loader2, Sparkles } from "lucide-react";
 
-// ✅ Booking form validation schema
+// ✅ Validation schema
 const bookingSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
@@ -36,9 +48,21 @@ interface BookingFormProps {
   packagePrice: string;
 }
 
-const BookingForm = ({ isOpen, onClose, selectedPackage, packagePrice }: BookingFormProps) => {
+const BookingForm = ({
+  isOpen,
+  onClose,
+  selectedPackage,
+  packagePrice,
+}: BookingFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+
+  // ✅ Log environment variables for debugging (remove later)
+  useEffect(() => {
+    console.log("ENV test - SERVICE ID:", import.meta.env.VITE_EMAILJS_SERVICE_ID);
+    console.log("ENV test - PUBLIC KEY:", import.meta.env.VITE_EMAILJS_PUBLIC_KEY);
+    console.log("ENV test - TEMPLATE ID:", import.meta.env.VITE_EMAILJS_TEMPLATE_ID);
+  }, []);
 
   const {
     register,
@@ -50,42 +74,45 @@ const BookingForm = ({ isOpen, onClose, selectedPackage, packagePrice }: Booking
     resolver: zodResolver(bookingSchema),
   });
 
-  // ✅ Handle form submission using Supabase edge function
+  // ✅ Handle form submission with EmailJS
   const onSubmit = async (data: BookingFormData) => {
     setIsSubmitting(true);
 
     try {
-      // Call the send-booking-email edge function
-      const { error } = await supabase.functions.invoke('send-booking-email', {
-        body: {
-          fullName: data.fullName,
-          email: data.email,
-          phone: data.phone,
-          eventType: data.eventType,
-          date: data.date,
-          time: data.time,
-          location: data.location,
-          notes: data.notes || "",
-          saxophonist: data.saxophonist || false,
-          photoGift: data.photoGift || false,
-          package: selectedPackage,
-          price: packagePrice,
-        },
-      });
+      const templateParams = {
+        fullName: data.fullName,
+        email: data.email,
+        phone: data.phone,
+        eventType: data.eventType,
+        date: data.date,
+        time: data.time,
+        location: data.location,
+        notes: data.notes || "",
+        saxophonist: data.saxophonist ? "Yes" : "No",
+        photoGift: data.photoGift ? "Yes" : "No",
+        selectedPackage,
+        packagePrice,
+      };
 
-      if (error) throw error;
+      const result = await emailjs.send(
+        import.meta.env.VITE_EMAILJS_SERVICE_ID!,
+        import.meta.env.VITE_EMAILJS_TEMPLATE_ID!,
+        templateParams,
+        import.meta.env.VITE_EMAILJS_PUBLIC_KEY!
+      );
 
-      // ✅ Success handling
-      setShowSuccess(true);
-      reset();
-
-      setTimeout(() => {
-        setShowSuccess(false);
-        onClose();
-      }, 5000);
-
+      if (result.status === 200) {
+        setShowSuccess(true);
+        reset();
+        setTimeout(() => {
+          setShowSuccess(false);
+          onClose();
+        }, 5000);
+      } else {
+        throw new Error("Failed to send email");
+      }
     } catch (error) {
-      console.error("Booking error:", error);
+      console.error("EmailJS error:", error);
       toast.error("Failed to submit booking. Please try again or contact us directly.");
     } finally {
       setIsSubmitting(false);
@@ -101,14 +128,20 @@ const BookingForm = ({ isOpen, onClose, selectedPackage, packagePrice }: Booking
             <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center mb-6 mx-auto animate-pulse-glow">
               <Sparkles className="text-primary-foreground" size={40} />
             </div>
-            <h3 className="font-heading font-bold text-3xl mb-4 gradient-text">Booking Confirmed!</h3>
+            <h3 className="font-heading font-bold text-3xl mb-4 gradient-text">
+              Booking Confirmed!
+            </h3>
             <p className="text-muted-foreground mb-6 font-body">
               Thank you — your appointment and package have been successfully booked.
             </p>
             <div className="space-y-2 text-sm text-muted-foreground font-body bg-muted/20 rounded-lg p-4">
-              <p>✓ The Jubilee Events team will reach out shortly via email or phone to confirm your details.</p>
+              <p>
+                ✓ The Jubilee Events team will reach out shortly via email or phone to confirm your details.
+              </p>
               <p>✓ A confirmation email has been sent to your inbox.</p>
-              <p className="pt-2">If you have any immediate questions, please contact us at:</p>
+              <p className="pt-2">
+                If you have any immediate questions, please contact us at:
+              </p>
               <p className="font-semibold text-foreground">jubileeeventsyyc@gmail.com</p>
               <p className="font-semibold text-foreground">587-700-8564</p>
             </div>
@@ -118,14 +151,18 @@ const BookingForm = ({ isOpen, onClose, selectedPackage, packagePrice }: Booking
     );
   }
 
-  // ✅ Main Booking Form UI
+  // ✅ Booking Form UI (unchanged)
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-card border-primary/50">
         <DialogHeader>
-          <DialogTitle className="font-heading text-3xl gradient-text">Book Your Event</DialogTitle>
+          <DialogTitle className="font-heading text-3xl gradient-text">
+            Book Your Event
+          </DialogTitle>
           <DialogDescription className="text-muted-foreground font-body">
-            Selected Package: <span className="font-bold text-foreground">{selectedPackage}</span> - {packagePrice}
+            Selected Package:{" "}
+            <span className="font-bold text-foreground">{selectedPackage}</span> -{" "}
+            {packagePrice}
           </DialogDescription>
         </DialogHeader>
 
@@ -139,7 +176,11 @@ const BookingForm = ({ isOpen, onClose, selectedPackage, packagePrice }: Booking
                 className="bg-input/50 border-border focus:border-primary transition-colors"
                 placeholder="John Doe"
               />
-              {errors.fullName && <p className="text-destructive text-sm mt-1">{errors.fullName.message}</p>}
+              {errors.fullName && (
+                <p className="text-destructive text-sm mt-1">
+                  {errors.fullName.message}
+                </p>
+              )}
             </div>
 
             <div>
@@ -151,7 +192,11 @@ const BookingForm = ({ isOpen, onClose, selectedPackage, packagePrice }: Booking
                 className="bg-input/50 border-border focus:border-primary transition-colors"
                 placeholder="john@example.com"
               />
-              {errors.email && <p className="text-destructive text-sm mt-1">{errors.email.message}</p>}
+              {errors.email && (
+                <p className="text-destructive text-sm mt-1">
+                  {errors.email.message}
+                </p>
+              )}
             </div>
           </div>
 
@@ -164,7 +209,11 @@ const BookingForm = ({ isOpen, onClose, selectedPackage, packagePrice }: Booking
                 className="bg-input/50 border-border focus:border-primary transition-colors"
                 placeholder="587-700-8564"
               />
-              {errors.phone && <p className="text-destructive text-sm mt-1">{errors.phone.message}</p>}
+              {errors.phone && (
+                <p className="text-destructive text-sm mt-1">
+                  {errors.phone.message}
+                </p>
+              )}
             </div>
 
             <div>
@@ -180,7 +229,11 @@ const BookingForm = ({ isOpen, onClose, selectedPackage, packagePrice }: Booking
                   <SelectItem value="other">Other Special Event</SelectItem>
                 </SelectContent>
               </Select>
-              {errors.eventType && <p className="text-destructive text-sm mt-1">{errors.eventType.message}</p>}
+              {errors.eventType && (
+                <p className="text-destructive text-sm mt-1">
+                  {errors.eventType.message}
+                </p>
+              )}
             </div>
           </div>
 
@@ -194,7 +247,11 @@ const BookingForm = ({ isOpen, onClose, selectedPackage, packagePrice }: Booking
                 min={new Date().toISOString().split("T")[0]}
                 className="bg-input/50 border-border focus:border-primary transition-colors"
               />
-              {errors.date && <p className="text-destructive text-sm mt-1">{errors.date.message}</p>}
+              {errors.date && (
+                <p className="text-destructive text-sm mt-1">
+                  {errors.date.message}
+                </p>
+              )}
             </div>
 
             <div>
@@ -205,7 +262,11 @@ const BookingForm = ({ isOpen, onClose, selectedPackage, packagePrice }: Booking
                 {...register("time")}
                 className="bg-input/50 border-border focus:border-primary transition-colors"
               />
-              {errors.time && <p className="text-destructive text-sm mt-1">{errors.time.message}</p>}
+              {errors.time && (
+                <p className="text-destructive text-sm mt-1">
+                  {errors.time.message}
+                </p>
+              )}
             </div>
           </div>
 
@@ -217,7 +278,11 @@ const BookingForm = ({ isOpen, onClose, selectedPackage, packagePrice }: Booking
               className="bg-input/50 border-border focus:border-primary transition-colors"
               placeholder="123 Celebration Ave, Calgary, AB"
             />
-            {errors.location && <p className="text-destructive text-sm mt-1">{errors.location.message}</p>}
+            {errors.location && (
+              <p className="text-destructive text-sm mt-1">
+                {errors.location.message}
+              </p>
+            )}
           </div>
 
           <div>
@@ -230,20 +295,37 @@ const BookingForm = ({ isOpen, onClose, selectedPackage, packagePrice }: Booking
             />
           </div>
 
-          {(selectedPackage === "Golden Glitz" || selectedPackage === "Platinum Prestige") && (
+          {(selectedPackage === "Golden Glitz" ||
+            selectedPackage === "Platinum Prestige") && (
             <div className="space-y-3 bg-muted/20 rounded-lg p-4">
               <Label>Add-ons</Label>
               {selectedPackage === "Platinum Prestige" && (
                 <div className="flex items-center space-x-2">
-                  <Checkbox id="photoGift" onCheckedChange={(checked) => setValue("photoGift", checked as boolean)} />
-                  <label htmlFor="photoGift" className="text-sm font-body cursor-pointer">
+                  <Checkbox
+                    id="photoGift"
+                    onCheckedChange={(checked) =>
+                      setValue("photoGift", checked as boolean)
+                    }
+                  />
+                  <label
+                    htmlFor="photoGift"
+                    className="text-sm font-body cursor-pointer"
+                  >
                     Customized Photo Gift (Included)
                   </label>
                 </div>
               )}
               <div className="flex items-center space-x-2">
-                <Checkbox id="saxophonist" onCheckedChange={(checked) => setValue("saxophonist", checked as boolean)} />
-                <label htmlFor="saxophonist" className="text-sm font-body cursor-pointer">
+                <Checkbox
+                  id="saxophonist"
+                  onCheckedChange={(checked) =>
+                    setValue("saxophonist", checked as boolean)
+                  }
+                />
+                <label
+                  htmlFor="saxophonist"
+                  className="text-sm font-body cursor-pointer"
+                >
                   Saxophonist Performance (Included)
                 </label>
               </div>
@@ -271,3 +353,5 @@ const BookingForm = ({ isOpen, onClose, selectedPackage, packagePrice }: Booking
 };
 
 export default BookingForm;
+
+
