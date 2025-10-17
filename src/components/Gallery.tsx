@@ -48,6 +48,7 @@ const Gallery = () => {
                   hoveredId === item.id ? 'opacity-100' : 'opacity-0'
                 }`}
               >
+              
                 <p className="font-heading font-bold text-xl text-foreground">{item.label}</p>
               </div>
             </div>

@@ -7,6 +7,8 @@ import Gallery from "@/components/Gallery";
 import Contact from "@/components/Contact";
 import BookingForm from "@/components/BookingForm";
 import FloatingElements from "@/components/FloatingElements";
+import VideoSection from "@/components/VideoSection";
+
 
 const Index = () => {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
@@ -71,10 +73,20 @@ const Index = () => {
         <Packages onSelectPackage={handleSelectPackage} />
       </div>
 
+      {/* ✅ Video Section */}
+<VideoSection />
+
       {/* ✅ Gallery Section */}
       <div ref={galleryRef} id="gallery" className="scroll-mt-28">
         <Gallery />
       </div>
+
+
+
+{/* ✅ Contact Section */}
+<div ref={contactRef} id="contact" className="scroll-mt-28">
+  <Contact />
+</div>
 
       {/* ✅ Contact Section */}
       <div ref={contactRef} id="contact" className="scroll-mt-28">
